@@ -1,38 +1,56 @@
 #!/usr/bin/env ruby
 
 require 'date'
+require 'optparse'
 
 class Calendar
-    def initialize
+    def today
         @date = Date.today
-        @first_date = Date.new(@date.year, @date.month, 1)
-        @last_date = Date.new(@date.year, @date.month, -1)
+    end
+
+    def enter_options(year, month = Date.today.month)
+        year = Date.today.year if year.nil?
+        @date = Date.new(year, month, 1)
     end
 
     def show_date
+        first_date = Date.new(@date.year, @date.month, 1)
+        last_date = Date.new(@date.year, @date.month, -1)
+
         days = "     #{@date.month}月 #{@date.year}     \n日 月 火 水 木 金 土\n"
-        dates = @last_date.day - @first_date.day
+        dates = (first_date..last_date).to_a
 
-        # 1日目は自分で決める感じ
-        # 曜日によって空白文字を決める
-        empty = ["", "     ", "     ", "       ", "        ", "                ", "                  "]
-        if @first_date.saturday?
-            days << "#{empty[6]}1\n"
-        else
-            days << "#{empty[@first_date.wday]}1 "
-        end
-
-        dates.times.each do |day|
-            that_day = Date.new(@date.year, @date.month, day + 2)
-            if that_day.saturday?
-                days << "#{that_day.strftime('%e')} \n"
+        dates.each do |date|
+            if date.day == 1 && date == Date.today
+                days << "#{space_count(date)}\e[30m\e[47m 1\e[0m "
+            elsif date.day == 1
+                days << "#{space_count(date)} 1 "
+            elsif date == Date.today
+                days << "\e[30m\e[47m#{date.strftime('%e')}\e[0m"
             else
-                days << "#{that_day.strftime('%e')} "
+                days << "#{date.strftime('%e')} "
             end
+            days << "\n" if date.saturday?
         end
         days
     end
+
+    def space_count(date)
+        "   " * date.wday
+    end
 end
 
+month = nil
+year = nil
+OptionParser.new do |opts|
+    opts.on('-m VAL', Integer) { |number| month = number }
+    opts.on('-y VAL', Integer) { |number| year = number }
+end.parse!
+
 calendar = Calendar.new
+if month.nil?
+    calendar.today
+else
+    calendar.enter_options(year, month)
+end
 puts calendar.show_date
