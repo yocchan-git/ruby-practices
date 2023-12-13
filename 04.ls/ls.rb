@@ -4,7 +4,7 @@
 ROW_LENGTH = 4
 
 def max_length(check_array)
-  check_array.max_by(&:length)&.length
+  check_array.max_by(&:length).length
 end
 
 def grouped_files_or_directories(files_or_directories, row_length)
