@@ -4,16 +4,12 @@
 require 'date'
 require 'optparse'
 
-def today
-  Date.today
-end
-
-def enter_options(year, month = Date.today.month)
+def create_options_date_instance(year, month)
   year = Date.today.year if year.nil?
   Date.new(year, month, 1)
 end
 
-def space_count(date)
+def forward_first_day_space(date)
   '   ' * date.wday
 end
 
@@ -26,9 +22,9 @@ def show_calendar(setting_date)
 
   dates.each do |date|
     days << if date.day == 1 && date == Date.today
-              "#{space_count(date)}\e[30m\e[47m 1\e[0m "
+              "#{forward_first_day_space(date)}\e[30m\e[47m 1\e[0m "
             elsif date.day == 1
-              "#{space_count(date)} 1 "
+              "#{forward_first_day_space(date)} 1 "
             elsif date == Date.today
               "\e[30m\e[47m#{date.strftime('%e')}\e[0m "
             else
@@ -46,9 +42,5 @@ OptionParser.new do |opts|
   opts.on('-y VAL', Integer) { |number| year = number }
 end.parse!
 
-setting_date = if month.nil?
-                 today
-               else
-                 enter_options(year, month)
-               end
+setting_date = month.nil? ? Date.today : create_options_date_instance(year, month)
 puts show_calendar(setting_date)
