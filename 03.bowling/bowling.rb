@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'debug'
-
 score = ARGV[0]
 scores = score.split(',')
 shots = []
@@ -15,56 +13,48 @@ scores.each do |s|
   end
 end
 
-frames = []
-shots.each_slice(2) do |s|
-  frames << s
-end
-
-def delete_frames(frames, first_number, end_number)
-  (first_number..end_number).to_a.each_index do |i|
-    frames.delete_at(end_number - i)
-  end
-end
-
+frames = shots.each_slice(2).to_a
 point = 0
-flg = false
-# １０フレーム目で３投投げた時の処理
-if frames[10]
-  if frames[11]
-    # ２投ともストライクの時
-    last_frame = [10, 10, frames[11][0]]
-    delete_frames(frames, 9, 11)
-  elsif frames[9][0] == 10
-    # １投目がストライクの時
-    last_frame = [10, frames[10][0], frames[10][1]]
-    delete_frames(frames, 9, 10)
-  else
-    # スペアで３投目がある時
-    last_frame = [frames[9][0], frames[9][1], frames[10][0]]
-    delete_frames(frames, 9, 10)
-  end
+throw_third_last_frame = false
 
-  flg = true
+if frames.size > 10
+  first_strike = frames[9][0] == 10
+  second_strike = frames[10][0] == 10
+
+  last_frame = if first_strike && second_strike
+                 [10, 10, frames[11][0]]
+               elsif first_strike
+                 [10, frames[10][0], frames[10][1]]
+               else
+                 [frames[9][0], frames[9][1], frames[10][0]]
+               end
+
+  frames = frames[0..8]
+  throw_third_last_frame = true
   point += last_frame.sum
 end
 
 frames.each_with_index do |frame, i|
-  # １０フレームで３投投げる　&& ９フレーム目がストライクorスペア
-  if flg && i == 8
-    if frame[0] == 10
-      point += (10 + last_frame[0] + last_frame[1])
+  strike = frame[0] == 10
+  spare = frame.sum == 10
+  next_frame = i + 1
+  previous_frame = i - 1
+
+  if throw_third_last_frame && i == 8
+    if strike
+      point += 10 + last_frame[0] + last_frame[1]
       next
-    elsif frame.sum == 10
-      point += (10 + last_frame[0])
+    elsif spare
+      point += 10 + last_frame[0]
       next
     end
   end
 
-  if frame[0] == 10 # strike
-    point += (10 + frames[i + 1].sum)
-    point += frames[i + 1][0] if frames[i - 1][0] == 10
-  elsif frame.sum == 10 # spare
-    point += (10 + frames[i + 1][0])
+  if strike
+    point += 10 + frames[next_frame].sum
+    point += frames[next_frame][0] if frames[previous_frame][0] == 10
+  elsif spare
+    point += 10 + frames[next_frame][0]
   else
     point += frame.sum
   end
