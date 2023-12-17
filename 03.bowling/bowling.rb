@@ -29,32 +29,28 @@ if frames.size > 10
                  [frames[9][0], frames[9][1], frames[10][0]]
                end
 
-  frames = frames[0..8]
+  frames = [*frames[0..8], last_frame]
   throw_third_last_frame = true
-  point += last_frame.sum
 end
 
 frames.each_with_index do |frame, i|
   strike = frame[0] == 10
-  spare = frame.sum == 10
-  next_frame = i + 1
-  previous_frame = i - 1
+  spare = !strike && frame.sum == 10
+  next_frame = frames[i + 1]
+  previous_frame = frames[i - 1]
+  throw_first_frame = i.zero?
+  throw_last_frame = i == 9
 
-  if throw_third_last_frame && i == 8
-    if strike
-      point += 10 + last_frame[0] + last_frame[1]
-      next
-    elsif spare
-      point += 10 + last_frame[0]
-      next
-    end
+  if throw_last_frame && throw_third_last_frame
+    point += last_frame.sum
+    next
   end
 
   if strike
-    point += 10 + frames[next_frame].sum
-    point += frames[next_frame][0] if frames[previous_frame][0] == 10
+    point += 10 + next_frame[0] + next_frame[1]
+    point += next_frame[0] if previous_frame[0] == 10 && !throw_first_frame
   elsif spare
-    point += 10 + frames[next_frame][0]
+    point += 10 + next_frame[0]
   else
     point += frame.sum
   end
