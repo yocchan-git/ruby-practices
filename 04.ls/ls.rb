@@ -12,12 +12,16 @@ def grouped_files_or_directories(files_or_directories, column_length)
 end
 
 file_or_directory = Dir.entries('.').reject { |file| file.match(/^\./) }.sort
+
 column_length_array = file_or_directory.length.divmod(ROW_LENGTH)
 column_length = column_length_array[0]
 column_length += 1 unless column_length_array[1].zero?
 
-transposed_groups = grouped_files_or_directories(file_or_directory, column_length).transpose
+groups = grouped_files_or_directories(file_or_directory, column_length)
+max_lengths = groups.map { |group| max_length(group.compact) }
+
+transposed_groups = groups.transpose
 transposed_groups.each do |group|
-  group.compact.each { |item| printf("%-#{max_length(file_or_directory)}s   ", item) }
+  group.compact.each_with_index { |item, index| printf("%-#{max_lengths[index]}s   ", item) }
   puts
 end
