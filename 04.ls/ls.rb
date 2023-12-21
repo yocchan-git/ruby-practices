@@ -12,8 +12,9 @@ def grouped_files_or_directories(files_or_directories, column_length)
 end
 
 file_or_directory = Dir.entries('.').reject { |file| file.match(/^\./) }.sort
-column_length = file_or_directory.size / ROW_LENGTH
-column_length += 1 unless (file_or_directory.size % ROW_LENGTH).zero?
+column_length_array = file_or_directory.length.divmod(ROW_LENGTH)
+column_length = column_length_array[0]
+column_length += 1 unless column_length_array[1].zero?
 
 transposed_groups = grouped_files_or_directories(file_or_directory, column_length).transpose
 transposed_groups.each do |group|
