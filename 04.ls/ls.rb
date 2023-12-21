@@ -15,13 +15,6 @@ file_or_directory = Dir.entries('.').reject { |file| file.match(/^\./) }.sort
 column_length = file_or_directory.size / ROW_LENGTH
 column_length += 1 unless (file_or_directory.size % ROW_LENGTH).zero?
 
-if file_or_directory.length < column_length
-  file_or_directory.each do |file_or_directory_output|
-    puts file_or_directory_output
-  end
-  exit
-end
-
 transposed_groups = grouped_files_or_directories(file_or_directory, column_length).transpose
 transposed_groups.each do |group|
   group.compact.each { |item| printf("%-#{max_length(file_or_directory)}s   ", item) }
