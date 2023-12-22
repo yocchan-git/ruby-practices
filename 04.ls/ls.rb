@@ -13,9 +13,8 @@ end
 
 file_or_directory = Dir.entries('.').reject { |file| file.match(/^\./) }.sort
 
-column_length_array = file_or_directory.length.divmod(ROW_LENGTH)
-column_length = column_length_array[0]
-column_length += 1 unless column_length_array[1].zero?
+column_length, column_length_remainder = file_or_directory.length.divmod(ROW_LENGTH)
+column_length += 1 unless column_length_remainder.zero?
 
 groups = grouped_files_or_directories(file_or_directory, column_length)
 max_lengths = groups.map { |group| max_length(group.compact) }
