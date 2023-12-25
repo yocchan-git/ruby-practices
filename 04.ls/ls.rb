@@ -4,14 +4,22 @@
 require 'optparse'
 ROW_LENGTH = 3
 
-regex_file = /^\./
+option = nil
 OptionParser.new do |opts|
-  opts.on('-a [VAL]') { |_v| regex_file = nil }
-  opts.on('-A [VAL]') { |_v| regex_file = /^\.\.?$/ }
+  opts.on('-a [VAL]') { |_v| option = :all }
+  opts.on('-A [VAL]') { |_v| option = :almost_all }
 end.parse!
 
-def create_file_or_directory(regex_file)
-  regex_file.nil? ? Dir.entries('.') : Dir.entries('.').reject { |file| file.match(regex_file) }
+def create_file_or_directory(option)
+  all_files_or_directories = Dir.entries('.')
+  case option
+  when :all
+    all_files_or_directories
+  when :almost_all
+    all_files_or_directories.reject { |file| file.match(/^\.\.?$/) }
+  else
+    all_files_or_directories.reject { |file| file.match(/^\./) }
+  end
 end
 
 def max_length(check_array)
@@ -22,7 +30,7 @@ def grouped_files_or_directories(files_or_directories, column_length)
   files_or_directories.each_slice(column_length).map { |slice| slice.fill(nil, slice.length...column_length) }
 end
 
-file_or_directory = create_file_or_directory(regex_file).sort
+file_or_directory = create_file_or_directory(option).sort
 
 column_length, column_length_remainder = file_or_directory.length.divmod(ROW_LENGTH)
 column_length += 1 unless column_length_remainder.zero?
