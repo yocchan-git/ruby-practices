@@ -1,7 +1,13 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require 'optparse'
 ROW_LENGTH = 3
+
+opt = OptionParser.new
+option = nil
+opt.on('-r [VAL]') { |_v| option = :reverse }
+opt.parse!(ARGV)
 
 def max_length(check_array)
   check_array.max_by(&:length).length
@@ -12,6 +18,7 @@ def grouped_files_or_directories(files_or_directories, column_length)
 end
 
 file_or_directory = Dir.entries('.').reject { |file| file.match(/^\./) }.sort
+file_or_directory.reverse! if option == :reverse
 
 column_length, column_length_remainder = file_or_directory.length.divmod(ROW_LENGTH)
 column_length += 1 unless column_length_remainder.zero?
