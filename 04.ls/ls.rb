@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 require 'optparse'
-require "etc"
+require 'etc'
 
 ROW_LENGTH = 3
 NORMAL_PERMISSIONS_DIGITS = -3..-1
@@ -16,53 +16,55 @@ option = nil
 opt.on('-l [VAL]') { |_v| option = :detail }
 opt.parse!(ARGV)
 
+def create_symbolic_permissions(permission_digits)
+  permission_digits.chars.map do |char|
+    {
+      '0' => '---',
+      '1' => '--x',
+      '2' => '-w-',
+      '3' => '-wx',
+      '4' => 'r--',
+      '5' => 'r-x',
+      '6' => 'rw-',
+      '7' => 'rwx'
+    }[char]
+  end.join
+end
+
+def find_file_type(file_stat)
+  return '-' if file_stat.file?
+  return 'd' if file_stat.directory?
+  return 'c' if file_stat.chardev?
+  return 'b' if file_stat.blockdev?
+  return 'l' if file_stat.symlink?
+  return 's' if file_stat.socket?
+  return 'p' if file_stat.pipe?
+
+  '?'
+end
+
+def create_special_permission(special_digits)
+  case special_digits
+  when '1' then 't'
+  when '2' then 's'
+  when '4' then 's'
+  else ''
+  end
+end
+
 def create_file_details(file_name)
   file_stat = File::Stat.new(file_name)
   permissions = file_stat.mode
 
-  permission_digits = sprintf('%o', permissions)[NORMAL_PERMISSIONS_DIGITS]
-  special_digits = sprintf('%o', permissions)[SPECIAL_PERMISSION_DIGIT]
+  permission_digits = format('%o', permissions)[NORMAL_PERMISSIONS_DIGITS]
+  special_digits = format('%o', permissions)[SPECIAL_PERMISSION_DIGIT]
 
-  symbolic_permissions = 
-    permission_digits.chars.map do |char|
-      case char
-      when '0' then '---'
-      when '1' then '--x'
-      when '2' then '-w-'
-      when '3' then '-wx'
-      when '4' then 'r--'
-      when '5' then 'r-x'
-      when '6' then 'rw-'
-      when '7' then 'rwx'
-      end
-    end.join
-
-  file_type = 
-    case
-      when file_stat.file? then '-'
-      when file_stat.directory? then 'd'
-      when file_stat.chardev? then 'c'
-      when file_stat.blockdev? then 'b'
-      when file_stat.symlink? then 'l'
-      when file_stat.socket? then 's'
-      when file_stat.pipe? then 'p'
-      else '?'
-    end
-
-  special_permission = 
-    case special_digits
-      when '1' then 't'
-      when '2' then 's'
-      when '4' then 's'
-      else ''
-    end
+  symbolic_permissions = create_symbolic_permissions(permission_digits)
+  file_type = find_file_type(file_stat)
+  special_permission = create_special_permission(special_digits)
 
   unless special_permission.empty?
-    if symbolic_permissions[OTHER_PERMISSION_MOVE] == 'x'
-      symbolic_permissions[OTHER_PERMISSION_MOVE] = special_permission
-    else
-      symbolic_permissions[OTHER_PERMISSION_MOVE] = special_permission.upcase
-    end
+    symbolic_permissions[OTHER_PERMISSION_MOVE] = symbolic_permissions[OTHER_PERMISSION_MOVE] == 'x' ? special_permission : special_permission.upcase
   end
 
   @total += file_stat.blocks
@@ -71,7 +73,7 @@ def create_file_details(file_name)
   @owner << Etc.getpwuid(file_stat.uid).name
   @group << Etc.getgrgid(file_stat.gid).name
   @size << file_stat.size.to_s
-  @created_at << file_stat.birthtime.strftime("%m %d %H:%M")
+  @created_at << file_stat.birthtime.strftime('%m %d %H:%M')
   @file_name << file_name
 end
 
@@ -110,13 +112,9 @@ if option == :detail
   puts "total #{@total}"
   transposed_groups = @file_or_directory_details.transpose
   transposed_groups.each do |group|
-    group.compact.each_with_index do |item, index| 
-      if index == HARD_LINKS || index == SIZE
-        print item.rjust(max_lengths[index])
-      else
-        print item.ljust(max_lengths[index])
-      end
-      print "  "
+    group.compact.each_with_index do |item, index|
+      print [HARD_LINKS, SIZE].include?(index) ? item.rjust(max_lengths[index]) : item.ljust(max_lengths[index])
+      print '  '
     end
     puts
   end
