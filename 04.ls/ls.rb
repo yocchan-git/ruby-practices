@@ -112,9 +112,9 @@ if option == :detail
   end
 
   puts "total #{total_blocks}"
-  file_or_directory_details.each do |file_detail|
-    file_detail.each do |key, value|
-      print value
+  file_or_directory_details.each do |file_details|
+    file_details.each_value do |file_detail|
+      print file_detail
       print '  '
     end
     puts
