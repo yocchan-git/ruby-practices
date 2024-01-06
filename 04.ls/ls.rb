@@ -83,7 +83,9 @@ def create_file_name(file_name)
 end
 
 def create_updated_time(file_stat)
-  file_stat.mtime.strftime('%m %d').gsub(/\b0(\d)\b/, ' \1') + ' ' + file_stat.mtime.strftime('%H:%M')
+  month_and_date = file_stat.mtime.strftime('%m %d').gsub(/\b0(\d)\b/, ' \1')
+  hour_and_minutes = file_stat.mtime.strftime('%H:%M')
+  "#{month_and_date} #{hour_and_minutes}"
 end
 
 def create_file_details(files)
