@@ -8,7 +8,7 @@ ROW_LENGTH = 3
 NORMAL_PERMISSIONS_DIGITS = -3..-1
 SPECIAL_PERMISSION_DIGIT = -4
 OTHER_PERMISSION_MOVE = -1
-HARD_LINKS = 1
+HARD_LINK = 1
 FILE_SIZE = 4
 PERMISSION_SYMBOLICS = {
   '0' => '---',
@@ -120,7 +120,7 @@ def display_file_details(total, file_details, max_lengths)
   transposed_groups = file_details.transpose
   transposed_groups.each do |group|
     group.compact.each_with_index do |item, index|
-      print [HARD_LINKS, FILE_SIZE].include?(index) ? item.rjust(max_lengths[index]) : item.ljust(max_lengths[index])
+      print [HARD_LINK, FILE_SIZE].include?(index) ? item.rjust(max_lengths[index]) : item.ljust(max_lengths[index])
       print '  '
     end
     puts
