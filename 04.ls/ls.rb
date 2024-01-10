@@ -66,11 +66,10 @@ def create_permission(file_stat)
   symbolic_permissions = create_symbolic_permissions(permission_digits)
   special_permission = create_special_permission(special_digits)
 
-  unless special_permission.empty?
-    symbolic_permissions[OTHER_PERMISSION_MOVE] = symbolic_permissions[OTHER_PERMISSION_MOVE] == 'x' ? special_permission : special_permission.upcase
-  end
+  return symbolic_permissions if special_permission.empty?
 
-  symbolic_permissions
+  special_permission_symbolic = symbolic_permissions[OTHER_PERMISSION_MOVE] == 'x' ? special_permission : special_permission.upcase
+  symbolic_permissions.gsub(/.$/, special_permission_symbolic)
 end
 
 def create_file_name(file_name)
