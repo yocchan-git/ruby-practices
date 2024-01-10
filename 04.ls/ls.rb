@@ -21,11 +21,6 @@ PERMISSION_SYMBOLICS = {
   '7' => 'rwx'
 }.freeze
 
-opt = OptionParser.new
-option = nil
-opt.on('-l [VAL]') { |_v| option = :detail }
-opt.parse!(ARGV)
-
 def create_max_length(check_files_or_details)
   check_files_or_details.max_by(&:length).length
 end
@@ -153,6 +148,11 @@ def show_file_or_directory(file_or_directory)
 end
 
 file_or_directory = Dir.entries('.').reject { |file| file.match(/^\./) }.sort
+
+opt = OptionParser.new
+option = nil
+opt.on('-l [VAL]') { |_v| option = :detail }
+opt.parse!(ARGV)
 
 if option == :detail
   show_file_details(file_or_directory)
