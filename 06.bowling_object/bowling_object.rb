@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require './game.rb'
+require './game'
 
 score = ARGV[0]
 bowling = Game.new(score)

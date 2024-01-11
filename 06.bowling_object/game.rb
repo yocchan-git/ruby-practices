@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require './frame.rb'
-require './shot.rb'
+require './frame'
+require './shot'
 
 class Game
   def initialize(score)
@@ -25,7 +25,7 @@ class Game
       previous_frame = @frames[i - 1]
       throw_after_first_frame = !i.zero?
       throw_before_last_frame = i != 9
-    
+
       if strike && throw_before_last_frame
         point += 10 + next_frame[0] + next_frame[1]
         point += next_frame[0] if previous_frame[0] == 10 && throw_after_first_frame
