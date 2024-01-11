@@ -4,5 +4,5 @@
 require './game'
 
 score = ARGV[0]
-bowling = Game.new(score)
-puts bowling.calculate_total_point
+game = Game.new(score)
+puts game.calculate_total_point
