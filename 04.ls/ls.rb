@@ -146,16 +146,20 @@ def show_file_or_directory(file_or_directory)
   display_file_or_directory(groups, max_lengths)
 end
 
-file_or_directory = Dir.entries('.').reject { |file| file.match(/^\./) }.sort
+bunnkatu = ARGV.flat_map { |s| s.chars.map{|c| "-#{c}"} }.reject{ |argv_array| argv_array.match(/^--$/) }
 
-opt = OptionParser.new
-option = nil
-opt.on('-l [VAL]') { |_v| option = :detail }
-opt.parse!(ARGV)
+option = []
+OptionParser.new do |opts|
+  opts.on('-a [VAL]') { |_v| option << :all }
+  opts.on('-r [VAL]') { |_v| option << :reverse }
+  opts.on('-l [VAL]') { |_v| option << :detail }
+end.parse!(bunnkatu)
 
-if option == :detail
+file_or_directory = option.include?(:all) ? Dir.entries('.').sort : Dir.entries('.').reject { |file| file.match(/^\./) }.sort
+file_or_directory.reverse! if option.include?(:reverse)
+
+if option.include?(:detail)
   show_file_details(file_or_directory)
 else
   show_file_or_directory(file_or_directory)
 end
-
