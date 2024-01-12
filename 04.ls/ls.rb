@@ -146,20 +146,17 @@ def show_file_or_directory(file_or_directory)
   display_file_or_directory(groups, max_lengths)
 end
 
-bunnkatu = ARGV.flat_map { |s| s.chars.map{|c| "-#{c}"} }.reject{ |argv_array| argv_array.match(/^--$/) }
-
-option = []
+option_details = []
+divided_options = ARGV.each_with_object([]) { |entered_options, divid_options| entered_options.chars.each { |option| divid_options << "-#{option}" if option != '-' } }
 OptionParser.new do |opts|
-  opts.on('-a [VAL]') { |_v| option << :all }
-  opts.on('-r [VAL]') { |_v| option << :reverse }
-  opts.on('-l [VAL]') { |_v| option << :detail }
-end.parse!(bunnkatu)
+  opts.on('-a [VAL]') { |_v| option_details << :all }
+  opts.on('-r [VAL]') { |_v| option_details << :reverse }
+  opts.on('-l [VAL]') { |_v| option_details << :detail }
+end.parse!(divided_options)
 
-file_or_directory = option.include?(:all) ? Dir.entries('.').sort : Dir.entries('.').reject { |file| file.match(/^\./) }.sort
-file_or_directory.reverse! if option.include?(:reverse)
+file_or_directory = Dir.entries('.').sort
 
-if option.include?(:detail)
-  show_file_details(file_or_directory)
-else
-  show_file_or_directory(file_or_directory)
-end
+file_or_directory.reject! { |file| file.match(/^\./) } if option_details.none?(:all)
+file_or_directory.reverse! if option_details.include?(:reverse)
+
+option_details.include?(:detail) ? show_file_details(file_or_directory) : show_file_or_directory(file_or_directory)
