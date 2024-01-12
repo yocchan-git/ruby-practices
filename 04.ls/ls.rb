@@ -146,8 +146,14 @@ def show_file_or_directory(file_or_directory)
   display_file_or_directory(groups, max_lengths)
 end
 
+divided_options =
+  ARGV.each_with_object([]) do |entered_options, divid_options|
+    entered_options.chars.each do |option|
+      divid_options << "-#{option}" if option != '-'
+    end
+  end
+
 option_details = []
-divided_options = ARGV.each_with_object([]) { |entered_options, divid_options| entered_options.chars.each { |option| divid_options << "-#{option}" if option != '-' } }
 OptionParser.new do |opts|
   opts.on('-a [VAL]') { |_v| option_details << :all }
   opts.on('-r [VAL]') { |_v| option_details << :reverse }
