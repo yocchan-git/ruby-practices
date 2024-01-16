@@ -146,23 +146,19 @@ def show_file_or_directory(file_or_directory)
   display_file_or_directory(groups, max_lengths)
 end
 
-divided_options =
-  ARGV.each_with_object([]) do |entered_options, divid_options|
-    entered_options.chars.each do |option|
-      divid_options << "-#{option}" if option != '-'
-    end
-  end
+all_files = nil
+reverse = nil
+display_details = nil
 
-option_details = []
 OptionParser.new do |opts|
-  opts.on('-a [VAL]') { |_v| option_details << :all }
-  opts.on('-r [VAL]') { |_v| option_details << :reverse }
-  opts.on('-l [VAL]') { |_v| option_details << :detail }
-end.parse!(divided_options)
+  opts.on("-a"){|is_option| all_files = is_option }
+  opts.on("-r"){|is_option| reverse = is_option }
+  opts.on("-l"){|is_option| display_details = is_option }
+end.parse!
 
 file_or_directory = Dir.entries('.').sort
 
-file_or_directory.reject! { |file| file.match(/^\./) } if option_details.none?(:all)
-file_or_directory.reverse! if option_details.include?(:reverse)
+file_or_directory.reject! { |file| file.match(/^\./) } if all_files.nil?
+file_or_directory.reverse! if reverse
 
-option_details.include?(:detail) ? show_file_details(file_or_directory) : show_file_or_directory(file_or_directory)
+display_details ? show_file_details(file_or_directory) : show_file_or_directory(file_or_directory)
