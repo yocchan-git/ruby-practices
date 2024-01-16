@@ -151,9 +151,9 @@ reverse = nil
 display_details = nil
 
 OptionParser.new do |opts|
-  opts.on("-a"){|is_option| all_files = is_option }
-  opts.on("-r"){|is_option| reverse = is_option }
-  opts.on("-l"){|is_option| display_details = is_option }
+  opts.on('-a') { |is_option| all_files = is_option }
+  opts.on('-r') { |is_option| reverse = is_option }
+  opts.on('-l') { |is_option| display_details = is_option }
 end.parse!
 
 file_or_directory = Dir.entries('.').sort
