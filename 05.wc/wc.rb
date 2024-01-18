@@ -100,7 +100,7 @@ end
 file_options = create_file_options(display_lines, display_words, display_bytes)
 file_details = file_options.empty? ? create_file_details(file_contents) : create_file_details_with_options(file_contents, file_options)
 
-entered_files << "total" if require_total?
+entered_files << 'total' if require_total?
 file_details << entered_files unless pipe?
 FILE_NAMES = file_details.length - 1
 
@@ -110,7 +110,7 @@ transformed_file_details = file_details.transpose
 transformed_file_details.each do |display_file_detail|
   display_file_detail.each_with_index do |file_detail, index|
     print '  '
-    print FILE_NAMES == index ? file_detail.ljust(max_lengths[index]) : file_detail.rjust(max_lengths[index])
+    print FILE_NAMES === index ? file_detail.ljust(max_lengths[index]) : file_detail.rjust(max_lengths[index])
   end
   puts
 end
