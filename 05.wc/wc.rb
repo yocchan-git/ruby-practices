@@ -15,7 +15,7 @@ OptionParser.new do |opts|
   opts.on('-c') { |is_option| display_bytes = is_option }
 end.parse!
 
-def is_require_total
+def require_total?
   !ARGV[1].nil?
 end
 
@@ -29,7 +29,7 @@ def create_file_lines(file_contents)
     file_lines << file_content.split(/\n/).length
   end
 
-  file_lines << file_lines.sum if is_require_total
+  file_lines << file_lines.sum if require_total?
   file_lines.map(&:to_s)
 end
 
@@ -39,7 +39,7 @@ def create_file_bytes(file_contents)
     file_bytes << file_content.bytesize
   end
 
-  file_bytes << file_bytes.sum if is_require_total
+  file_bytes << file_bytes.sum if require_total?
   file_bytes.map(&:to_s)
 end
 
@@ -49,7 +49,7 @@ def create_file_words(file_contents)
     file_words << file_content.split(/\s+/).length
   end
 
-  file_words << file_words.sum if is_require_total
+  file_words << file_words.sum if require_total?
   file_words.map(&:to_s)
 end
 
@@ -100,7 +100,7 @@ end
 file_options = create_file_options(display_lines, display_words, display_bytes)
 file_details = file_options.empty? ? create_file_details(file_contents) : create_file_details_with_options(file_contents, file_options)
 
-entered_files << "total" if is_require_total
+entered_files << "total" if require_total?
 file_details << entered_files unless pipe?
 FILE_NAMES = file_details.length - 1
 
