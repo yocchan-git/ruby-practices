@@ -3,6 +3,8 @@
 
 require 'optparse'
 
+$stdin = STDIN
+
 display_lines = nil
 display_words = nil
 display_bytes = nil
@@ -15,6 +17,10 @@ end.parse!
 
 def is_require_total
   !ARGV[1].nil?
+end
+
+def pipe?
+  ARGV.empty?
 end
 
 def create_file_lines(file_contents)
@@ -67,12 +73,19 @@ def create_max_lengths(files_details)
   files_details.map { |file_detail| file_detail.max_by(&:length).length }
 end
 
-set_files = ARGV
+def create_file_contents
+  return [$stdin.read] if pipe?
 
-file_contents = []
-set_files.each do |file|
-  file_contents << File.read(file)
+  file_contents_draft = []
+
+  ARGV.each do |file|
+    file_contents_draft << File.read(file)
+  end
+  file_contents_draft
 end
+
+entered_files = ARGV
+file_contents = create_file_contents
 
 def create_file_options(is_display_lines, is_display_words, is_display_bytes)
   file_options = []
@@ -87,8 +100,8 @@ end
 file_options = create_file_options(display_lines, display_words, display_bytes)
 file_details = file_options.empty? ? create_file_details(file_contents) : create_file_details_with_options(file_contents, file_options)
 
-set_files << "total" if is_require_total
-file_details << set_files
+entered_files << "total" if is_require_total
+file_details << entered_files unless pipe?
 FILE_NAMES = file_details.length - 1
 
 max_lengths = create_max_lengths(file_details)
