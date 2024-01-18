@@ -3,14 +3,14 @@
 
 require 'optparse'
 
-display_bytes = nil
 display_lines = nil
 display_words = nil
+display_bytes = nil
 
 OptionParser.new do |opts|
   opts.on('-l') { |is_option| display_lines = is_option }
-  opts.on('-c') { |is_option| display_bytes = is_option }
   opts.on('-w') { |is_option| display_words = is_option }
+  opts.on('-c') { |is_option| display_bytes = is_option }
 end.parse!
 
 def is_require_total
@@ -30,7 +30,7 @@ end
 def create_file_bytes(file_contents)
   file_bytes = []
   file_contents.each do |file_content|
-    file_bytes << file_content.split(/\s+/).length
+    file_bytes << file_content.bytesize
   end
 
   file_bytes << file_bytes.sum if is_require_total
@@ -40,7 +40,7 @@ end
 def create_file_words(file_contents)
   file_words = []
   file_contents.each do |file_content|
-    file_words << file_content.length
+    file_words << file_content.split(/\s+/).length
   end
 
   file_words << file_words.sum if is_require_total
@@ -49,18 +49,18 @@ end
 
 def create_file_details_with_options(file_contents, options)
   file_lines = create_file_lines(file_contents) if options.include?('lines')
-  file_bytes = create_file_bytes(file_contents) if options.include?('bytes')
   file_words = create_file_words(file_contents) if options.include?('words')
+  file_bytes = create_file_bytes(file_contents) if options.include?('bytes')
 
-  [file_lines, file_bytes, file_words].compact
+  [file_lines, file_words, file_bytes].compact
 end
 
 def create_file_details(file_contents)
   file_lines = create_file_lines(file_contents)
-  file_bytes = create_file_bytes(file_contents)
   file_words = create_file_words(file_contents)
+  file_bytes = create_file_bytes(file_contents)
 
-  [file_lines, file_bytes, file_words]
+  [file_lines, file_words, file_bytes]
 end
 
 def create_max_lengths(files_details)
@@ -74,17 +74,17 @@ set_files.each do |file|
   file_contents << File.read(file)
 end
 
-def create_file_options(is_display_lines, is_display_bytes, is_display_words)
+def create_file_options(is_display_lines, is_display_words, is_display_bytes)
   file_options = []
 
   file_options << 'lines' if is_display_lines
-  file_options << 'bytes' if is_display_bytes
   file_options << 'words' if is_display_words
+  file_options << 'bytes' if is_display_bytes
 
   file_options
 end
 
-file_options = create_file_options(display_lines, display_bytes, display_words)
+file_options = create_file_options(display_lines, display_words, display_bytes)
 file_details = file_options.empty? ? create_file_details(file_contents) : create_file_details_with_options(file_contents, file_options)
 
 set_files << "total" if is_require_total
