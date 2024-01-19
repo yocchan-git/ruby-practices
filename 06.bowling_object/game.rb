@@ -16,9 +16,9 @@ class Game
     @frames.each_with_index do |frame, frame_number|
       set_terms(frame, frame_number)
 
-      if @strike && @throw_before_last_frame
+      if @strike && @frames_other_than_last
         point += 10 + @next_frame[0] + @next_frame[1]
-        point += @next_frame[0] if @previous_frame[0] == 10 && @throw_after_first_frame
+        point += @next_frame[0] if @previous_frame[0] == 10 && @frames_other_than_first
       elsif @spare
         point += 10 + @next_frame[0]
       else
@@ -43,7 +43,7 @@ class Game
     @next_frame = @frames[frame_number + 1]
     @previous_frame = @frames[frame_number - 1]
 
-    @throw_after_first_frame = !frame_number.zero?
-    @throw_before_last_frame = frame_number != 9
+    @frames_other_than_first = !frame_number.zero?
+    @frames_other_than_last = frame_number != 9
   end
 end
