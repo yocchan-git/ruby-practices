@@ -4,10 +4,10 @@
 require 'optparse'
 
 def main
-  file_options = create_file_options
+  options = create_options
 
   file_contents = create_file_contents
-  file_details = file_options.empty? ? create_file_details(file_contents) : create_file_details_with_options(file_contents, file_options)
+  file_details = options.empty? ? create_file_details(file_contents) : create_file_details_with_options(file_contents, options)
 
   entered_files = ARGV
   entered_files << 'total' if require_total?
@@ -16,7 +16,7 @@ def main
   display_file_details(file_details)
 end
 
-def create_file_options
+def create_options
   options = []
 
   OptionParser.new do |opts|
@@ -57,14 +57,6 @@ def create_file_details_with_options(file_contents, options)
   [file_lines, file_words, file_bytes].compact
 end
 
-def require_total?
-  !ARGV[1].nil?
-end
-
-def pipe?
-  ARGV.empty?
-end
-
 def create_file_lines(file_contents)
   file_lines = []
   file_contents.each do |file_content|
@@ -93,6 +85,14 @@ def create_file_words(file_contents)
 
   file_words << file_words.sum if require_total?
   file_words.map(&:to_s)
+end
+
+def require_total?
+  !ARGV[1].nil?
+end
+
+def pipe?
+  ARGV.empty?
 end
 
 def display_file_details(file_details)
