@@ -104,7 +104,7 @@ def display_file_details(file_details)
   transformed_file_details.each do |display_file_detail|
     display_file_detail.each_with_index do |file_detail, index|
       print '  '
-      print file_name_number === index ? file_detail.ljust(max_lengths[index]) : file_detail.rjust(max_lengths[index])
+      print file_name_number == index ? file_detail.ljust(max_lengths[index]) : file_detail.rjust(max_lengths[index])
     end
     puts
   end
