@@ -41,6 +41,10 @@ def create_file_contents
   file_contents_draft
 end
 
+def pipe?
+  ARGV.empty?
+end
+
 def create_file_details(file_contents)
   file_lines = create_file_lines(file_contents)
   file_words = create_file_words(file_contents)
@@ -89,10 +93,6 @@ end
 
 def require_total?
   !ARGV[1].nil?
-end
-
-def pipe?
-  ARGV.empty?
 end
 
 def display_file_details(file_details)
