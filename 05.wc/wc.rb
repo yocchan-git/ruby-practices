@@ -3,20 +3,8 @@
 
 require 'optparse'
 
-$stdin = STDIN
-
-display_lines = nil
-display_words = nil
-display_bytes = nil
-
-OptionParser.new do |opts|
-  opts.on('-l') { |is_option| display_lines = is_option }
-  opts.on('-w') { |is_option| display_words = is_option }
-  opts.on('-c') { |is_option| display_bytes = is_option }
-end.parse!
-
-def main(display_lines, display_words, display_bytes)
-  file_options = create_file_options(display_lines, display_words, display_bytes)
+def main
+  file_options = create_file_options
 
   file_contents = create_file_contents
   file_details = file_options.empty? ? create_file_details(file_contents) : create_file_details_with_options(file_contents, file_options)
@@ -28,21 +16,25 @@ def main(display_lines, display_words, display_bytes)
   display_file_details(file_details)
 end
 
-def create_file_options(is_display_lines, is_display_words, is_display_bytes)
-  file_options = []
+def create_file_options
+  options = []
 
-  file_options << 'lines' if is_display_lines
-  file_options << 'words' if is_display_words
-  file_options << 'bytes' if is_display_bytes
+  OptionParser.new do |opts|
+    opts.on('-l') { |_v| options << :lines }
+    opts.on('-w') { |_v| options << :words }
+    opts.on('-c') { |_v| options << :bytes }
+  end.parse!
 
-  file_options
+  options
 end
 
 def create_file_contents
-  return [$stdin.read] if pipe?
+  if pipe?
+    $stdin = STDIN
+    return [$stdin.read]
+  end
 
   file_contents_draft = []
-
   ARGV.each do |file|
     file_contents_draft << File.read(file)
   end
@@ -58,9 +50,9 @@ def create_file_details(file_contents)
 end
 
 def create_file_details_with_options(file_contents, options)
-  file_lines = create_file_lines(file_contents) if options.include?('lines')
-  file_words = create_file_words(file_contents) if options.include?('words')
-  file_bytes = create_file_bytes(file_contents) if options.include?('bytes')
+  file_lines = create_file_lines(file_contents) if options.include?(:lines)
+  file_words = create_file_words(file_contents) if options.include?(:words)
+  file_bytes = create_file_bytes(file_contents) if options.include?(:bytes)
 
   [file_lines, file_words, file_bytes].compact
 end
@@ -118,4 +110,4 @@ def display_file_details(file_details)
   end
 end
 
-main(display_lines, display_words, display_bytes)
+main
