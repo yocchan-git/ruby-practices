@@ -5,7 +5,7 @@ require 'optparse'
 
 def main
   options = create_options
-  display_multiple_files? ? display_entered_content_details(options) : display_file_details(options)
+  display_multiple_files? ? display_single_file_details(options) : display_file_details(options)
 end
 
 def create_options
@@ -25,21 +25,21 @@ def display_multiple_files?
   file_names.empty? || file_names[1].nil?
 end
 
-def display_entered_content_details(options)
+def display_single_file_details(options)
   file_name = ARGV[0]
-  entered_content = create_entered_content(file_name)
+  file_content = create_read_file(file_name)
 
-  entered_content_details = []
+  file_content_details = []
 
-  entered_content_details << entered_content.split(/\n/).length  if display_lines?(options)
-  entered_content_details << entered_content.split(/\s+/).length if display_words?(options)
-  entered_content_details << entered_content.bytesize if display_bytes?(options)
-  entered_content_details << file_name if file_name
+  file_content_details << file_content.split(/\n/).length  if display_lines?(options)
+  file_content_details << file_content.split(/\s+/).length if display_words?(options)
+  file_content_details << file_content.bytesize if display_bytes?(options)
+  file_content_details << file_name if file_name
 
-  puts entered_content_details.join('  ')
+  puts file_content_details.join('  ')
 end
 
-def create_entered_content(file_name)
+def create_read_file(file_name)
   if file_name
     File.read(file_name)
   else
@@ -49,15 +49,15 @@ def create_entered_content(file_name)
 end
 
 def display_lines?(options)
-  options.has_key?(:lines) || options.empty?
+  options.key?(:lines) || options.empty?
 end
 
 def display_words?(options)
-  options.has_key?(:words) || options.empty?
+  options.key?(:words) || options.empty?
 end
 
 def display_bytes?(options)
-  options.has_key?(:bytes) || options.empty?
+  options.key?(:bytes) || options.empty?
 end
 
 def display_file_details(options)
@@ -71,7 +71,7 @@ def display_file_details(options)
     details << file_detail[:words].rjust(widths[:words]) if display_words?(options)
     details << file_detail[:bytes].rjust(widths[:bytes]) if display_bytes?(options)
     details << file_detail[:file_name]
-    
+
     puts details.join('  ')
   end
 end
@@ -103,7 +103,7 @@ def create_total_details
 
   total_details[:lines] = file_contents.sum { |file_content| file_content.split(/\n/).length }.to_s
   total_details[:words] = file_contents.sum { |file_content| file_content.split(/\s+/).length }.to_s
-  total_details[:bytes] = file_contents.sum { |file_content| file_content.bytesize }.to_s
+  total_details[:bytes] = file_contents.sum(&:bytesize).to_s
   total_details[:file_name] = 'total'
 
   total_details
