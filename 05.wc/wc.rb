@@ -20,13 +20,9 @@ def create_options
   options
 end
 
-def create_entered_content(file_name)
-  if file_name
-    File.read(file_name)
-  else
-    $stdin = STDIN
-    $stdin.read
-  end
+def display_multiple_files?
+  file_names = ARGV
+  file_names.empty? || file_names[1].nil?
 end
 
 def display_entered_content_details(options)
@@ -43,6 +39,15 @@ def display_entered_content_details(options)
   puts entered_content_details.join('  ')
 end
 
+def create_entered_content(file_name)
+  if file_name
+    File.read(file_name)
+  else
+    $stdin = STDIN
+    $stdin.read
+  end
+end
+
 def display_lines?(options)
   options.has_key?(:lines) || options.empty?
 end
@@ -55,9 +60,41 @@ def display_bytes?(options)
   options.has_key?(:bytes) || options.empty?
 end
 
-def display_multiple_files?
-  file_names = ARGV
-  file_names.empty? || file_names[1].nil?
+def display_file_details(options)
+  file_details = create_file_details
+  widths = create_max_lengths
+
+  file_details.each do |file_detail|
+    details = []
+
+    details << file_detail[:lines].rjust(widths[:lines]) if display_lines?(options)
+    details << file_detail[:words].rjust(widths[:words]) if display_words?(options)
+    details << file_detail[:bytes].rjust(widths[:bytes]) if display_bytes?(options)
+    details << file_detail[:file_name]
+    
+    puts details.join('  ')
+  end
+end
+
+def create_file_details
+  file_details = []
+
+  ARGV.each { |file| file_details << create_file_content(file) }
+  file_details << create_total_details
+
+  file_details
+end
+
+def create_file_content(file_name)
+  file_content = File.read(file_name)
+
+  file_detail = {}
+  file_detail[:lines] = file_content.split(/\n/).length.to_s
+  file_detail[:words] = file_content.split(/\s+/).length.to_s
+  file_detail[:bytes] = file_content.bytesize.to_s
+  file_detail[:file_name] = file_name
+
+  file_detail
 end
 
 def create_total_details
@@ -81,43 +118,6 @@ def create_max_lengths
   widths[:bytes] = total_details[:bytes].length
 
   widths
-end
-
-def create_file_content(file_name)
-  file_content = File.read(file_name)
-
-  file_detail = {}
-  file_detail[:lines] = file_content.split(/\n/).length.to_s
-  file_detail[:words] = file_content.split(/\s+/).length.to_s
-  file_detail[:bytes] = file_content.bytesize.to_s
-  file_detail[:file_name] = file_name
-
-  file_detail
-end
-
-def create_file_details
-  file_details = []
-
-  ARGV.each { |file| file_details << create_file_content(file) }
-  file_details << create_total_details
-
-  file_details
-end
-
-def display_file_details(options)
-  file_details = create_file_details
-  widths = create_max_lengths
-
-  file_details.each do |file_detail|
-    details = []
-
-    details << file_detail[:lines].rjust(widths[:lines]) if display_lines?(options)
-    details << file_detail[:words].rjust(widths[:words]) if display_words?(options)
-    details << file_detail[:bytes].rjust(widths[:bytes]) if display_bytes?(options)
-    details << file_detail[:file_name]
-    
-    puts details.join('  ')
-  end
 end
 
 main
