@@ -5,7 +5,7 @@ require 'optparse'
 
 def main
   options = create_options
-  display_multiple_files? ? display_single_file_details(options) : display_file_details(options)
+  display_multiple_files? ? display_entered_content_details(options) : display_file_details(options)
 end
 
 def create_options
@@ -25,21 +25,21 @@ def display_multiple_files?
   file_names.empty? || file_names[1].nil?
 end
 
-def display_single_file_details(options)
+def display_entered_content_details(options)
   file_name = ARGV[0]
-  file_content = create_read_file(file_name)
+  entered_content = create_entered_content(file_name)
 
-  file_content_details = []
+  content_details = []
 
-  file_content_details << file_content.split(/\n/).length  if display_lines?(options)
-  file_content_details << file_content.split(/\s+/).length if display_words?(options)
-  file_content_details << file_content.bytesize if display_bytes?(options)
-  file_content_details << file_name if file_name
+  content_details << entered_content.split(/\n/).length  if display_lines?(options)
+  content_details << entered_content.split(/\s+/).length if display_words?(options)
+  content_details << entered_content.bytesize if display_bytes?(options)
+  content_details << file_name if file_name
 
-  puts file_content_details.join('  ')
+  puts content_details.join('  ')
 end
 
-def create_read_file(file_name)
+def create_entered_content(file_name)
   if file_name
     File.read(file_name)
   else
