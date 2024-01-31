@@ -5,29 +5,29 @@ require 'optparse'
 
 def main
   options = create_options
-  display_multiple_files? ? display_entered_content_details(options) : display_file_details(options)
+  display_single_files? ? display_entered_content_details(options) : display_file_details(options)
 end
 
 def create_options
   options = {}
 
   OptionParser.new do |opts|
-    opts.on('-l') { |is_option| options[:lines] = is_option }
-    opts.on('-w') { |is_option| options[:words] = is_option }
-    opts.on('-c') { |is_option| options[:bytes] = is_option }
+    opts.on('-l') { |v| options[:lines] = v }
+    opts.on('-w') { |v| options[:words] = v }
+    opts.on('-c') { |v| options[:bytes] = v }
   end.parse!
 
   options
 end
 
-def display_multiple_files?
+def display_single_files?
   file_names = ARGV
-  file_names.empty? || file_names[1].nil?
+  file_names.length <= 1
 end
 
 def display_entered_content_details(options)
   file_name = ARGV[0]
-  entered_content = create_entered_content(file_name)
+  entered_content = file_name ? File.read(file_name) : $stdin.read
 
   content_details = []
 
@@ -37,15 +37,6 @@ def display_entered_content_details(options)
   content_details << file_name if file_name
 
   puts content_details.join('  ')
-end
-
-def create_entered_content(file_name)
-  if file_name
-    File.read(file_name)
-  else
-    $stdin = STDIN
-    $stdin.read
-  end
 end
 
 def display_lines?(options)
@@ -77,12 +68,8 @@ def display_file_details(options)
 end
 
 def create_file_details
-  file_details = []
-
-  ARGV.each { |file| file_details << create_file_content(file) }
-  file_details << create_total_details
-
-  file_details
+  file_details = ARGV.map { |file| create_file_content(file) }
+  [*file_details, create_total_details]
 end
 
 def create_file_content(file_name)
