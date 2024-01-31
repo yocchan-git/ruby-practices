@@ -26,12 +26,9 @@ end
 def create_file_details
   file_contents = create_file_content
 
-  file_details = []
-  file_contents.each_with_index do |file_content, index|
-    file_details << create_file_details_hash(file_content, index)
-  end
-
+  file_details = file_contents.each_with_index.map { |file_content, index| create_file_details_hash(file_content, index) }
   file_details << create_total_details(file_details) if display_multiple_files?
+
   file_details
 end
 
