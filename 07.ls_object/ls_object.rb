@@ -11,7 +11,7 @@ is_details = nil
 OptionParser.new do |opts|
   opts.on('-a') { |_v| options << :all_files }
   opts.on('-r') { |_v| options << :reverse }
-  opts.on('-l') { |is_option| is_details = is_option }
+  opts.on('-l') { |long_format| is_details = long_format }
 end.parse!
 
 if is_details
