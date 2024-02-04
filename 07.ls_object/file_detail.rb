@@ -19,8 +19,8 @@ class FileDetail
     '7' => 'rwx'
   }.freeze
 
-  def initialize
-    @file_paths = Dir.entries('.').sort
+  def initialize(file_paths)
+    @file_paths = file_paths
 
     @total_blocks = 0
     @type_and_permissions = []
@@ -30,14 +30,21 @@ class FileDetail
     @file_sizes = []
     @updated_times = []
     @file_names = []
-  end
-
-  def run_ls(options)
-    @file_paths.reject! { |file| file.match(/^\./) } if options.none?(:all_files)
-    @file_paths.reverse! if options.include?(:reverse)
 
     set_details
-    display_details
+  end
+
+  def display
+    max_lengths = @file_details.map { |file_detail| file_detail.compact.max_by(&:length).length }
+
+    puts "total #{@total_blocks}"
+    @file_details.transpose.each do |file_detail|
+      file_detail.compact.each_with_index do |item, index|
+        print [HARD_LINK, FILE_SIZE].include?(index) ? item.rjust(max_lengths[index]) : item.ljust(max_lengths[index])
+        print '  '
+      end
+      puts
+    end
   end
 
   private
@@ -107,18 +114,5 @@ class FileDetail
     end
 
     @file_details = [@type_and_permissions, @hard_links, @owners, @groups, @file_sizes, @updated_times, @file_names]
-  end
-
-  def display_details
-    max_lengths = @file_details.map { |file_detail| file_detail.compact.max_by(&:length).length }
-
-    puts "total #{@total_blocks}"
-    @file_details.transpose.each do |file_detail|
-      file_detail.compact.each_with_index do |item, index|
-        print [HARD_LINK, FILE_SIZE].include?(index) ? item.rjust(max_lengths[index]) : item.ljust(max_lengths[index])
-        print '  '
-      end
-      puts
-    end
   end
 end
