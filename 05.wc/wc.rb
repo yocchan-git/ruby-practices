@@ -6,9 +6,8 @@ require 'optparse'
 def main
   options = create_options
   file_details = create_file_details
-  widths = create_max_lengths(file_details)
 
-  display_file_details(file_details, widths, options)
+  display_file_details(file_details, options)
 end
 
 def create_options
@@ -20,31 +19,31 @@ def create_options
     opts.on('-c') { |v| options[:bytes] = v }
   end.parse!
 
-  options
+  options.empty? ? { lines: true, words: true, bytes: true } : options
 end
 
 def create_file_details
-  file_contents = create_file_content
+  file_name_and_contents = create_file_name_and_contents
 
-  file_details = file_contents.each_with_index.map { |file_content, index| create_file_details_hash(file_content, index) }
-  file_details << create_total_details(file_details) if display_multiple_files?
+  file_details = file_name_and_contents.each.map { |file_name_and_content| create_file_details_hash(file_name_and_content) }
+  file_details << create_total_details(file_details) if file_details.size > 1
 
   file_details
 end
 
-def create_file_content
-  return [$stdin.read] if ARGV.empty?
+def create_file_name_and_contents
+  return [{ file_name: '', content: $stdin.read }] if ARGV.empty?
 
-  ARGV.map { |file_name| File.read(file_name) }
+  ARGV.map { |file_name| { file_name:, content: File.read(file_name) } }
 end
 
-def create_file_details_hash(file_content, index)
+def create_file_details_hash(file_content)
   file_detail = {}
 
-  file_detail[:lines] = file_content.split(/\n/).length
-  file_detail[:words] = file_content.split(/\s+/).length
-  file_detail[:bytes] = file_content.bytesize
-  file_detail[:file_name] = ARGV[index]
+  file_detail[:lines] = file_content[:content].split(/\n/).length
+  file_detail[:words] = file_content[:content].split(/\s+/).length
+  file_detail[:bytes] = file_content[:content].bytesize
+  file_detail[:file_name] = file_content[:file_name]
 
   file_detail
 end
@@ -63,45 +62,29 @@ def create_total_details(file_details)
   { lines:, words:, bytes:, file_name: 'total' }
 end
 
-def display_multiple_files?
-  file_names = ARGV
-  file_names.length > 1
-end
+def display_file_details(file_details, options)
+  widths = create_max_lengths(file_details)
 
-def create_max_lengths(file_details)
-  widths = {}
-  longest_character_details = file_details.last
-
-  widths[:lines] = longest_character_details[:lines].to_s.length
-  widths[:words] = longest_character_details[:words].to_s.length
-  widths[:bytes] = longest_character_details[:bytes].to_s.length
-
-  widths
-end
-
-def display_file_details(file_details, widths, options)
   file_details.each do |file_detail|
     details = []
 
-    details << file_detail[:lines].to_s.rjust(widths[:lines]) if display_lines?(options)
-    details << file_detail[:words].to_s.rjust(widths[:words]) if display_words?(options)
-    details << file_detail[:bytes].to_s.rjust(widths[:bytes]) if display_bytes?(options)
+    details << file_detail[:lines].to_s.rjust(widths[:lines]) if options.key?(:lines)
+    details << file_detail[:words].to_s.rjust(widths[:words]) if options.key?(:words)
+    details << file_detail[:bytes].to_s.rjust(widths[:bytes]) if options.key?(:bytes)
     details << file_detail[:file_name]
 
     puts details.join('  ')
   end
 end
 
-def display_lines?(options)
-  options.key?(:lines) || options.empty?
-end
+def create_max_lengths(file_details)
+  last_file_details = file_details.last
 
-def display_words?(options)
-  options.key?(:words) || options.empty?
-end
-
-def display_bytes?(options)
-  options.key?(:bytes) || options.empty?
+  {
+    lines: last_file_details[:lines].to_s.length,
+    words: last_file_details[:words].to_s.length,
+    bytes: last_file_details[:bytes].to_s.length
+  }
 end
 
 main
