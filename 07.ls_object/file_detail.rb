@@ -49,6 +49,24 @@ class FileDetail
 
   private
 
+  def set_details
+    @file_paths.each do |file|
+      @file_name = file
+      @file_stat = find_symlink_file ? File.lstat(file) : File::Stat.new(file)
+
+      @total_blocks += @file_stat.blocks
+      @type_and_permissions << (find_symlink_file || find_file_type) + create_permission
+      @hard_links << @file_stat.nlink.to_s
+      @owners << Etc.getpwuid(@file_stat.uid).name
+      @groups << Etc.getgrgid(@file_stat.gid).name
+      @file_sizes << @file_stat.size.to_s
+      @updated_times << create_updated_time
+      @file_names << create_file_name
+    end
+
+    @file_details = [@type_and_permissions, @hard_links, @owners, @groups, @file_sizes, @updated_times, @file_names]
+  end
+
   def find_symlink_file
     'l' if File.lstat(@file_name).symlink?
   end
@@ -62,15 +80,6 @@ class FileDetail
     return 'p' if @file_stat.pipe?
 
     '?'
-  end
-
-  def create_special_permission
-    case @special_digits
-    when '1' then 't'
-    when '2' then 's'
-    when '4' then 's'
-    else ''
-    end
   end
 
   def create_permission
@@ -88,8 +97,13 @@ class FileDetail
     symbolic_permissions.gsub(/.$/, special_permission_symbolic)
   end
 
-  def create_file_name
-    find_symlink_file ? "#{@file_name} -> #{File.readlink(@file_name)}" : @file_name
+  def create_special_permission
+    case @special_digits
+    when '1' then 't'
+    when '2' then 's'
+    when '4' then 's'
+    else ''
+    end
   end
 
   def create_updated_time
@@ -98,21 +112,7 @@ class FileDetail
     "#{month_and_date} #{hour_and_minutes}"
   end
 
-  def set_details
-    @file_paths.each do |file|
-      @file_name = file
-      @file_stat = find_symlink_file ? File.lstat(file) : File::Stat.new(file)
-
-      @total_blocks += @file_stat.blocks
-      @type_and_permissions << (find_symlink_file || find_file_type) + create_permission
-      @hard_links << @file_stat.nlink.to_s
-      @owners << Etc.getpwuid(@file_stat.uid).name
-      @groups << Etc.getgrgid(@file_stat.gid).name
-      @file_sizes << @file_stat.size.to_s
-      @updated_times << create_updated_time
-      @file_names << create_file_name
-    end
-
-    @file_details = [@type_and_permissions, @hard_links, @owners, @groups, @file_sizes, @updated_times, @file_names]
+  def create_file_name
+    find_symlink_file ? "#{@file_name} -> #{File.readlink(@file_name)}" : @file_name
   end
 end
