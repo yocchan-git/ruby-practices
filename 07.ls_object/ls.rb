@@ -4,12 +4,9 @@ require 'optparse'
 require_relative './file_detail'
 
 class Ls
-  ROW_LENGTH = 3
-
-  # lsを動作させる処理を書く(Gameみたいな感じ)
   def initialize
-    set_options
-    set_file_paths
+    @options = fetch_options
+    @file_paths = fetch_file_paths
   end
 
   def run
@@ -17,37 +14,32 @@ class Ls
       file_detail = FileDetail.new(@file_paths)
       file_detail.display
     else
-      set_column_file_groups
+      @column_file_groups = FileFormatter.fetch_column_file_groups(@file_paths)
       display
     end
   end
 
   private
 
-  def set_options
-    @options = {}
+  def fetch_options
+    options = {}
 
     OptionParser.new do |opts|
-      opts.on('-a') { |v| @options[:all_files] = v }
-      opts.on('-r') { |v| @options[:reverse] = v }
-      opts.on('-l') { |v| @options[:long_format] = v }
+      opts.on('-a') { |v| options[:all_files] = v }
+      opts.on('-r') { |v| options[:reverse] = v }
+      opts.on('-l') { |v| options[:long_format] = v }
     end.parse!
 
-    @options
+    options
   end
 
-  def set_file_paths
-    @file_paths = Dir.entries('.').sort
+  def fetch_file_paths
+    file_paths = Dir.entries('.').sort
 
-    @file_paths.reject! { |file| file.match(/^\./) } if !@options.key?(:all_files)
-    @file_paths.reverse! if @options.key?(:reverse)
-  end
+    file_paths.reject! { |file| file.match(/^\./) } if !@options.key?(:all_files)
+    file_paths.reverse! if @options.key?(:reverse)
 
-  def set_column_file_groups
-    column_length, column_length_remainder = @file_paths.length.divmod(ROW_LENGTH)
-    column_length += 1 unless column_length_remainder.zero?
-
-    @column_file_groups = @file_paths.each_slice(column_length).map { |file_path| file_path.fill(nil, file_path.length...column_length) }
+    file_paths
   end
 
   def display
