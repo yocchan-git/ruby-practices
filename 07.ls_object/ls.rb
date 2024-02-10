@@ -4,6 +4,8 @@ require 'optparse'
 require_relative './file_detail'
 
 class Ls
+  ROW_LENGTH = 3
+
   def initialize
     @options = fetch_options
     @file_paths = fetch_file_paths
@@ -11,10 +13,10 @@ class Ls
 
   def run
     if @options.key?(:long_format)
-      file_detail = FileDetail.new(@file_paths)
-      file_detail.display
+      file_formatter = FileFormatter.new(@file_paths)
+      file_formatter.display
     else
-      @column_file_groups = FileFormatter.fetch_column_file_groups(@file_paths)
+      @column_file_groups = fetch_column_file_groups
       display
     end
   end
@@ -40,6 +42,13 @@ class Ls
     file_paths.reverse! if @options.key?(:reverse)
 
     file_paths
+  end
+
+  def fetch_column_file_groups
+    column_length, column_length_remainder = @file_paths.length.divmod(ROW_LENGTH)
+    column_length += 1 unless column_length_remainder.zero?
+
+    @file_paths.each_slice(column_length).map { |file_path| file_path.fill(nil, file_path.length...column_length) }
   end
 
   def display

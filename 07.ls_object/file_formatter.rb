@@ -1,102 +1,52 @@
 # frozen_string_literal: true
 
 class FileFormatter
-  ROW_LENGTH = 3
-  NORMAL_PERMISSIONS_DIGITS = -3..-1
-  SPECIAL_PERMISSION_DIGIT = -4
-  OTHER_PERMISSION_MOVE = -1
-  PERMISSION_SYMBOLICS = {
-    '0' => '---',
-    '1' => '--x',
-    '2' => '-w-',
-    '3' => '-wx',
-    '4' => 'r--',
-    '5' => 'r-x',
-    '6' => 'rw-',
-    '7' => 'rwx'
-  }.freeze
+  HARD_LINK = 1
+  FILE_SIZE = 4
 
-  def initialize(file_name)
-    @file_name = file_name
-    @file_stat = symlink_file? ? File.lstat(file_name) : File::Stat.new(file_name)
+  def initialize(file_paths)
+    @file_paths = file_paths
+    @total_blocks = 0
+    @file_details = fetch_file_details
   end
 
-  def self.fetch_column_file_groups(file_paths)
-    column_length, column_length_remainder = file_paths.length.divmod(ROW_LENGTH)
-    column_length += 1 unless column_length_remainder.zero?
+  def display
+    max_lengths = @file_details.map { |file_detail| file_detail.compact.max_by(&:length).length }
 
-    file_paths.each_slice(column_length).map { |file_path| file_path.fill(nil, file_path.length...column_length) }
-  end
-
-  def blocks
-    @file_stat.blocks
-  end
-
-  def file_type
-    return 'l' if symlink_file?
-    return '-' if @file_stat.file?
-    return 'd' if @file_stat.directory?
-    return 'c' if @file_stat.chardev?
-    return 'b' if @file_stat.blockdev?
-    return 's' if @file_stat.socket?
-    return 'p' if @file_stat.pipe?
-
-    '?'
-  end
-
-  def permission
-    permissions = @file_stat.mode
-
-    permission_digits = format('%o', permissions)[NORMAL_PERMISSIONS_DIGITS]
-    special_digits = format('%o', permissions)[SPECIAL_PERMISSION_DIGIT]
-
-    symbolic_permissions = permission_digits.chars.map { |char| PERMISSION_SYMBOLICS[char] }.join
-    special_permission = find_special_permission(special_digits)
-
-    return symbolic_permissions if special_permission.empty?
-
-    special_permission_symbolic = symbolic_permissions[OTHER_PERMISSION_MOVE] == 'x' ? special_permission : special_permission.upcase
-    symbolic_permissions.gsub(/.$/, special_permission_symbolic)
-  end
-
-  def hard_link
-    @file_stat.nlink.to_s
-  end
-
-  def owner
-    Etc.getpwuid(@file_stat.uid).name
-  end
-
-  def group
-    Etc.getgrgid(@file_stat.gid).name
-  end
-
-  def file_size
-    @file_stat.size.to_s
-  end
-
-  def updated_time
-    month_and_date = @file_stat.mtime.strftime('%m %d').gsub(/\b0(\d)\b/, ' \1')
-    hour_and_minutes = @file_stat.mtime.strftime('%H:%M')
-    "#{month_and_date} #{hour_and_minutes}"
-  end
-
-  def name
-    symlink_file? ? "#{@file_name} -> #{File.readlink(@file_name)}" : @file_name
+    puts "total #{@total_blocks}"
+    @file_details.transpose.each do |file_detail|
+      file_detail.compact.each_with_index do |item, index|
+        print [HARD_LINK, FILE_SIZE].include?(index) ? item.rjust(max_lengths[index]) : item.ljust(max_lengths[index])
+        print '  '
+      end
+      puts
+    end
   end
 
   private
 
-  def symlink_file?
-    File.lstat(@file_name).symlink?
-  end
+  def fetch_file_details
+    type_and_permissions = []
+    hard_links = []
+    owners = []
+    groups = []
+    file_sizes = []
+    updated_times = []
+    file_names = []
 
-  def find_special_permission(special_digits)
-    case special_digits
-    when '1' then 't'
-    when '2' then 's'
-    when '4' then 's'
-    else ''
+    @file_paths.each do |file_path|
+      file_detail = FileDetail.new(file_path)
+
+      @total_blocks += file_detail.blocks
+      type_and_permissions << file_detail.file_type + file_detail.permission
+      hard_links << file_detail.hard_link
+      owners << file_detail.owner
+      groups << file_detail.group
+      file_sizes << file_detail.file_size
+      updated_times << file_detail.updated_time
+      file_names << file_detail.name
     end
+
+    [type_and_permissions, hard_links, owners, groups, file_sizes, updated_times, file_names]
   end
 end
