@@ -6,6 +6,8 @@ require_relative './file_formatter'
 class FileDetail
   NORMAL_PERMISSIONS_DIGITS = -3..-1
   SPECIAL_PERMISSION_DIGIT = -4
+  SETUID_DIGIT = -7
+  SETGID_DIGIT = -4
   OTHER_PERMISSION_MOVE = -1
   PERMISSION_SYMBOLICS = {
     '0' => '---',
@@ -45,13 +47,11 @@ class FileDetail
     permission_digits = format('%o', permissions)[NORMAL_PERMISSIONS_DIGITS]
     special_digits = format('%o', permissions)[SPECIAL_PERMISSION_DIGIT]
 
-    symbolic_permissions = permission_digits.chars.map { |char| PERMISSION_SYMBOLICS[char] }.join
-    special_permission = find_special_permission(special_digits)
+    @symbolic_permissions = permission_digits.chars.map { |char| PERMISSION_SYMBOLICS[char] }.join
 
-    return symbolic_permissions if special_permission.empty?
+    replace_permissions_with_special(special_digits) if special_digits != '0'
 
-    special_permission_symbolic = symbolic_permissions[OTHER_PERMISSION_MOVE] == 'x' ? special_permission : special_permission.upcase
-    symbolic_permissions.gsub(/.$/, special_permission_symbolic)
+    @symbolic_permissions
   end
 
   def hard_link
@@ -86,12 +86,18 @@ class FileDetail
     File.lstat(@file_name).symlink?
   end
 
-  def find_special_permission(special_digits)
+  def replace_permissions_with_special(special_digits)
     case special_digits
-    when '1' then 't'
-    when '2' then 's'
-    when '4' then 's'
-    else ''
+    when '1'
+      replace_special_permission(OTHER_PERMISSION_MOVE, 't')
+    when '2'
+      replace_special_permission(SETGID_DIGIT, 's')
+    when '4'
+      replace_special_permission(SETUID_DIGIT, 's')
     end
+  end
+
+  def replace_special_permission(position, permission_symbolic)
+    @symbolic_permissions[position] = @symbolic_permissions[position] == 'x' ? permission_symbolic : permission_symbolic.upcase
   end
 end
